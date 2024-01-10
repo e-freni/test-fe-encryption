@@ -1,0 +1,6 @@
+<p>inserisci password:</p>
+<input [(ngModel)]="plainPassword" (keyup)="encryptWithPublicKey()"/>
+<p>password criptata: {{encryptedPassword}}</p>
+<button (click)="decryptWithPrivateKey()">Decripta password</button>
+<p *ngIf="this.decryptedPassword">password decriptata: {{this.decryptedPassword}}</p>
+<p></p>
