@@ -7,12 +7,14 @@ import { Component } from '@angular/core';
 export class AppComponent {
   public plainPassword: any;
   encryptedPassword: any = '';
+
+  //NB: le chiavi presenti sono autogenerate e solo di esempio
   publicKeyPem: any = '-----BEGIN PUBLIC KEY-----\n' +
     'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDWVQPgdWsmSr6/UWCi1CEdXhYV\n' +
     '8msxQBjNzUi5K2kA/Puv1vuUHEtYVUPj6igRzqe83MCAAoVkhQwySTJVGK5WAovG\n' +
     'k5w3FfD0xUJc+P/xA9OywLjgT3hUTSTpbrsS4H3ddbPvGmCaoeGvIZ4cbYJdzG5E\n' +
     'CaEMr0UHz8Wyr25VSQIDAQAB\n' +
-    '-----END PUBLIC KEY-----'
+    '-----END PUBLIC KEY-----';
 //NB: RSA di 1024 bit per leggibilità, nel caso eventualmente va usata ALMENO 2048(e ovviamente non harcodata :) )
   privateKeyPem: any = '-----BEGIN PRIVATE KEY-----\n' +
     'MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBANZVA+B1ayZKvr9R\n' +
@@ -29,28 +31,24 @@ export class AppComponent {
     'Tdnoz+wpZzFDFFKuIe8NNlyhv4AAOU2ISw3a2P628TsvzRLYQgyPAkBjE4Ux4QS1\n' +
     'tAwxy4dwekmH9zT8FkGrg4X71E3qw3q5JATWbWApV9zdp68JKODqrFAUKHWM2UPs\n' +
     'TMvc2XKc5Tlk\n' +
-    '-----END PRIVATE KEY-----'
+    '-----END PRIVATE KEY-----';
   decryptedPassword: string = '';
 
-    async encryptWithPublicKey() {
+  async encryptWithPublicKey() {
     const content = this.plainPassword;
-    // Converti il certificato PEM in un formato utilizzabile
     const publicKey = await this.importPublicKey(this.publicKeyPem);
 
-    // Converti il contenuto in un ArrayBuffer
     const encoder = new TextEncoder();
     const encodedContent = encoder.encode(content);
 
-    // Cripta il contenuto
     const encryptedContent = await window.crypto.subtle.encrypt(
       {
-        name: "RSA-OAEP"
+        name: 'RSA-OAEP'
       },
       publicKey,
       encodedContent
     );
 
-    // Converti il contenuto criptato in stringa Base64
     this.encryptedPassword = this.arrayBufferToBase64(encryptedContent);
   }
 
@@ -58,7 +56,7 @@ export class AppComponent {
     const privateKey = await this.importPrivateKey(this.privateKeyPem);
     const decryptedContent = await window.crypto.subtle.decrypt(
       {
-        name: "RSA-OAEP"
+        name: 'RSA-OAEP'
       },
       privateKey,
       this.base64ToArrayBuffer(this.encryptedPassword)
@@ -68,50 +66,40 @@ export class AppComponent {
   }
 
   private async importPrivateKey(pem: string): Promise<CryptoKey> {
-    const pemHeader = "-----BEGIN PRIVATE KEY-----";
-    const pemFooter = "-----END PRIVATE KEY-----";
+    const pemHeader = '-----BEGIN PRIVATE KEY-----';
+    const pemFooter = '-----END PRIVATE KEY-----';
     const pemContents = pem.replace(pemHeader, '').replace(pemFooter, '').trim();
     const binaryDerString = window.atob(pemContents);
     const binaryDer = this.stringToArrayBuffer(binaryDerString);
 
     return window.crypto.subtle.importKey(
-      "pkcs8",
+      'pkcs8',
       binaryDer,
       {
-        name: "RSA-OAEP",
-        hash: "SHA-256"
+        name: 'RSA-OAEP',
+        hash: 'SHA-256'
       },
       true,
-      ["decrypt"]
+      ['decrypt']
     );
   }
 
-  private base64ToArrayBuffer(base64: string): ArrayBuffer {
-    const binaryString = window.atob(base64);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    // Utilizza il metodo .buffer per ottenere un ArrayBuffer dal Uint8Array
-    return bytes.buffer as ArrayBuffer;
-  }
-
   private async importPublicKey(pem: string): Promise<CryptoKey> {
-    const pemHeader = "-----BEGIN PUBLIC KEY-----";
-    const pemFooter = "-----END PUBLIC KEY-----";
+    const pemHeader = '-----BEGIN PUBLIC KEY-----';
+    const pemFooter = '-----END PUBLIC KEY-----';
     const pemContents = pem.replace(pemHeader, '').replace(pemFooter, '').trim();
     const binaryDerString = window.atob(pemContents);
     const binaryDer = this.stringToArrayBuffer(binaryDerString);
 
     return window.crypto.subtle.importKey(
-      "spki",
+      'spki',
       binaryDer,
       {
-        name: "RSA-OAEP",
-        hash: "SHA-256"
+        name: 'RSA-OAEP',
+        hash: 'SHA-256'
       },
       true,
-      ["encrypt"]
+      ['encrypt']
     );
   }
 
@@ -132,6 +120,15 @@ export class AppComponent {
       binary += String.fromCharCode(bytes[i]);
     }
     return window.btoa(binary);
+  }
+
+  private base64ToArrayBuffer(base64: string): ArrayBuffer {
+    const binaryString = window.atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer as ArrayBuffer;
   }
 
 }
